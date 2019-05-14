@@ -1,6 +1,53 @@
 const query = require('./query');
 const { random, range } = require('lodash');
 
+const deleteOne = async uuid => {
+	//Triggers on the DB will handle deletion of children before the factory.
+	const deleteFactoryQuery = {
+		text: 'DELETE FROM factories WHERE uuid = $1',
+		values: [uuid]
+	};
+
+	try {
+		const deletionResult = await query(deleteFactoryQuery);
+		return true;
+	} catch(err) {
+		throw err;
+	}
+}
+
+const regenerateChildren = async (uuid, numChildren) => {
+	const findFactoryQuery = {
+		text: 'SELECT id, min, max FROM factories WHERE uuid = $1',
+		values: [uuid]
+	};
+
+	try {
+		const findFactoryResult = await query(findFactoryQuery);
+		const {id, min, max} = findFactoryResult.rows[0];
+		console.log(id, min, max);
+
+		const cleanHouseQuery = {
+			text: 'DELETE FROM children WHERE fid = $1',
+			values: [id]
+		};
+
+		const cleanHouseResult = await query(cleanHouseQuery);
+
+		const numSequence = range(0, numChildren).map(n => random(min, max));
+		const sequenceQuery = numSequence.map(num => `(${id},${num})`).join(',');
+
+		const newChildrenQuery = {
+			text: `INSERT INTO children(fid, num) VALUES ${sequenceQuery} RETURNING *`,
+			values: []
+		};
+
+		const newChildrenResult = await query(newChildrenQuery);
+		return true;
+	} catch(err) {
+		throw err;
+	}
+}
 const changeName = async (uuid, newName) => {
 	const newNameQuery = {
 		text: 'UPDATE factories SET name = $1 WHERE uuid = $2',
@@ -17,7 +64,7 @@ const changeName = async (uuid, newName) => {
 
 const getOne = async uuid => {
 	const allFactoriesQuery = {
-		text: 'SELECT id, uuid, min, max FROM factories WHERE uuid = $1',
+		text: 'SELECT id, name, uuid, min, max FROM factories WHERE uuid = $1',
 		values: [uuid]
 	};
 
@@ -50,7 +97,7 @@ const getOne = async uuid => {
 
 const getEverything = async () => {
 	const allFactoriesQuery = {
-		text: 'SELECT id, uuid, min, max FROM factories',
+		text: 'SELECT id, name, uuid, min, max FROM factories',
 		values: []
 	};
 
@@ -108,10 +155,11 @@ const makeFactory = async (name, uuid, numChildren, min = 0, max = 1) => {
 
 		const firstRow = newFactoryRes.rows[0];
 		const {id} = firstRow;
-		const numSequence = range(0, numChildren).map(n => range(min, max + 1));
+		const numSequence = range(0, numChildren).map(n => random(min, max));
 		const sequenceQuery = numSequence.map(num => `(${id},${num})`).join(',');
 		//The upcoming query is generated solely on the backend, no need to worry about user input.
 
+		//TODO: Move number generation to DB procedure.
 		const newChildrenQuery = {
 			text: `INSERT INTO children(fid, num) VALUES ${sequenceQuery} RETURNING *`,
 			values: []
@@ -120,8 +168,8 @@ const makeFactory = async (name, uuid, numChildren, min = 0, max = 1) => {
 		console.log(newChildrenQuery);
 		const newChildrenResult = await query(newChildrenQuery);
 
-		const children = newChildrenResult.res.rows.map(row => ({
-			number: num
+		const children = newChildrenResult.rows.map(row => ({
+			number: row.num
 		}));
 
 		return {
@@ -143,5 +191,7 @@ module.exports = {
 	makeFactory,
 	getEverything,
 	getOne,
-	changeName
+	changeName,
+	deleteOne,
+	regenerateChildren
 };
