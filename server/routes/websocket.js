@@ -1,35 +1,62 @@
 const app = require('../app');
 const express = require('express');
-const router = express.Router();
 const _ = require('lodash');
+const uuid = require('uuid/v4');
 
+const router = express.Router();
 const connectedClients = {};
+let clientCount = 0;
 
-router.ws('/connect', (ws, req) => {
-	let personalId = req.body.id || null;
+const handleMessage = (clientInfo, msg) => {
+	console.log(msg);
+}
 
-	ws.on('open', () => {
-		personalId = personalId || connectedClients.length;
+const injectHandlers = wsServer => {
+	wsServer.once('connection', ws => {
+		let personalId = uuid();
+
+
+		console.log('New connection');
 		connectedClients[personalId] = {
 			id: personalId,
-			socket: ws,
-			lastHeartbeat: Date.now()
+			socket: ws
 		};
-	})
 
-	ws.on('close', () => {
-		_.unset(connectedClients, `[${personalId}]`);
-	})
-});
+		clientCount ++;
+		console.log(clientCount);
 
-const broadcast = data => {
+
+		ws.on('close', () => {
+			console.log(`Client ${personalId} disconnected`);
+			_.unset(connectedClients, `[${personalId}]`);
+			clientCount --;
+		})
+
+		ws.on('message', msg => handleMessage(connectedClients[personalId], msg));
+
+		ws.on('open', () => {
+			console.log(`onOpen(${personalId})`);
+		});
+
+		const payload = {
+			type: 'TREE_STRUCTURE', 
+			data: {id: personalId}
+		};
+
+		ws.send(JSON.stringify(payload));
+	});
+};
+
+const broadcast = (data, ...except) => {
 	_.forEach(connectedClients, (value, key) => {
-		value.socket.send(data);
+		if(!except.includes(value.id)) {
+			value.socket.send(data);
+		}
 	});
 }
 
 module.exports = {
-	router,
+	injectHandlers,
 	broadcast
 	//TODO: Helper functions for other routes.
 }
