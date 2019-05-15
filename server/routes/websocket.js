@@ -2,17 +2,32 @@ const app = require('../app');
 const express = require('express');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
+const {
+	getAll
+} = require('../controllers/factory');
 
-const router = express.Router();
 const connectedClients = {};
 let clientCount = 0;
 
+const sendObj = (socket, obj) => socket.send(JSON.stringify(obj));
+
 const handleMessage = (clientInfo, msg) => {
+	const {socket} = clientInfo;
 	console.log(msg);
+
+	switch(msg.type) {
+		case 'TREE_REQUEST': {
+			getAll()
+				.then(result => sendObj(socket, {type: 'TREE_STRUCTURE', data: result}));
+		}
+		default: {
+			sendObj(socket, {type: 'UNKNOWN_TYPE', data: 'No idea what you are asking for'});
+		}
+	}
 }
 
 const injectHandlers = wsServer => {
-	wsServer.once('connection', ws => {
+	wsServer.on('connection', ws => {
 		let personalId = uuid();
 
 
@@ -43,7 +58,8 @@ const injectHandlers = wsServer => {
 			data: {id: personalId}
 		};
 
-		ws.send(JSON.stringify(payload));
+		handleMessage(connectedClients[personalId], {type: 'TREE_REQUEST'});
+		//ws.send(JSON.stringify(payload));
 	});
 };
 

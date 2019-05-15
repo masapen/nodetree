@@ -9,14 +9,17 @@ class TreeComponent extends React.Component {
 		connect('ws://localhost:3000/live/connect');
 	}
 	render() {
+		const {
+			tree = []
+		} = this.props;
+
 		return (
 			<div>
-				<Factory foo={'bar'} />
-				WIP
-				{
-					//For each factory -> <Factory {factoryObj} />
-				}
-			</div>);
+			{
+				tree.map(factory => (<Factory data={factory} />))
+			}
+			</div>
+		);
 	}
 }
 

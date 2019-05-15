@@ -18,7 +18,6 @@ const WS_OPEN = 'REDUX_WEBSOCKET::OPEN';
 const WS_INCOMING = 'REDUX_WEBSOCKET::MESSAGE';
 
 const initialState = {
-	socket: null,
 	tree: [],
 };
 
@@ -27,6 +26,20 @@ const messageHandler = (state, action) => {
 	try {
 		const {type, data} = JSON.parse(message);
 		switch(type) {
+			case 'GREETING': {
+				return {
+					...state,
+					welcomeMessage: data
+				};
+			}
+
+			case 'TREE_STRUCTURE': {
+				return {
+					...state,
+					tree: data
+				};
+			}
+			
 			default: {
 				return state;
 			}
