@@ -1,0 +1,68 @@
+
+$rgba-primary-0: rgba(  0,180, 22,1); // Main Primary color */
+$rgba-primary-1: rgba( 71,208, 88,1);
+$rgba-primary-2: rgba( 33,200, 53,1);
+$rgba-primary-3: rgba(  0,145, 18,1);
+$rgba-primary-4: rgba(  0,112, 14,1);
+
+$rgba-secondary-1-0: rgba(  2,130,142,1); // Main Secondary color (1) */
+$rgba-secondary-1-1: rgba( 61,163,173,1);
+$rgba-secondary-1-2: rgba( 28,147,159,1);
+$rgba-secondary-1-3: rgba(  1,104,114,1);
+$rgba-secondary-1-4: rgba(  1, 81, 88,1);
+
+$rgba-secondary-2-0: rgba(233,110,  0,1); // Main Secondary color (2) */
+$rgba-secondary-2-1: rgba(255,166, 87,1);
+$rgba-secondary-2-2: rgba(255,142, 42,1);
+$rgba-secondary-2-3: rgba(187, 88,  0,1);
+$rgba-secondary-2-4: rgba(145, 68,  0,1);
+
+$rgba-complement-0: rgba(233, 12,  0,1);  // Main Complement color */
+$rgba-complement-1: rgba(255, 96, 87,1);
+$rgba-complement-2: rgba(255, 52, 42,1);
+$rgba-complement-3: rgba(187,  9,  0,1);
+$rgba-complement-4: rgba(145,  7,  0,1);
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.dressing {
+  font-size: calc(10px + 1vmin);
+  min-height: 5vh;
+}
+
+.App-header {
+  background-color: $rgba-secondary-1-2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: sticky;
+  color: white;
+}
+
+.main {
+
+}
+.credits {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  background-color: $rgba-secondary-1-2;
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
