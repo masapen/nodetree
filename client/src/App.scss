@@ -81,6 +81,13 @@ ul {
       li {
         padding: 0 0.5em;
       }
+
+      .child {
+        font-weight: light;
+        &:hover {
+          font-weight: bolder;
+        }
+      }
       
     }
 

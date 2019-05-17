@@ -8,12 +8,15 @@
 */
 
 import {connect} from 'react-redux';
-import {connectToHost} from 'reducers/tree';
+import {
+	connectToHost, generateChildren
+} from 'reducers/tree';
 
 const mapStateToProps = state => ({...state});
 
 const mapDispatchToProps = {
-	connect: connectToHost
+	connect: connectToHost,
+	generateChildren,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps);

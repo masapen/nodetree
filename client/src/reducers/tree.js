@@ -4,13 +4,6 @@
 
 import {connect, send} from '@giantmachines/redux-websocket';
 
-const CONNECTED = 'node-tree/socket/CONNECT';
-const DISCONNECTED = 'node-tree/socket/DISCONNECTED';
-const GET_ALL = 'node-tree/tree/GET_ALL';
-const EDIT = 'node-tree/tree/EDIT';
-const REGEN = 'node-tree/tree/REGEN';
-const DELETE = 'node-tree/tree/DELETE';
-
 const WS_MESSAGE = 'REDUX_WEBSOCKET::MESSAGE';
 const WS_CONNECT = 'REDUX_WEBSOCKET::WEBSOCKET_CONNECT';
 const WS_SEND = 'REDUX_WEBSOCKET::WEBSOCKET_SEND';
@@ -40,6 +33,13 @@ const messageHandler = (state, action) => {
 				};
 			}
 
+			case 'USER_COUNT': {
+				return {
+					...state,
+					usersConnected: data
+				};
+			}
+
 			default: {
 				return state;
 			}
@@ -53,10 +53,12 @@ const messageHandler = (state, action) => {
 }
 
 
-const onConnected = data => ({type: WS_OPEN, payload: data});
-const onGetTree = obj => ({type: GET_ALL, payload: obj});
-
 export const connectToHost = address => dispatch => dispatch(connect(address));
+export const generateChildren = (factoryId, numChildren) => dispatch => 
+	dispatch(send({
+			type: 'CHILD_GENERATION_REQUEST', 
+			data: {uuid: factoryId, numChildren}
+		}));
 
 
 export const reducer = (state = initialState, action) => {

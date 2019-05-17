@@ -21,7 +21,10 @@ class TreeComponent extends React.Component {
 				<Button color="primary">New Factory +</Button>
 				<ul className="tree-group factory">
 				{
-					tree.map((factory, idx) => (<li key={`factory_${idx}`}><Factory data={factory} /></li>))
+					tree.map((factory, idx) => (
+						<li key={`factory_${idx}`}>
+							<Factory data={factory} generate={this.props.generateChildren} />
+						</li>))
 				}
 				</ul>
 			</div>
