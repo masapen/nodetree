@@ -25,7 +25,6 @@ const regenerateChildren = async (uuid, numChildren) => {
 	try {
 		const findFactoryResult = await query(findFactoryQuery);
 		const {id, min, max} = findFactoryResult.rows[0];
-		console.log(id, min, max);
 
 		const cleanHouseQuery = {
 			text: 'DELETE FROM children WHERE fid = $1',
@@ -48,6 +47,21 @@ const regenerateChildren = async (uuid, numChildren) => {
 		throw err;
 	}
 }
+
+const adjustRanges = async (uuid, newMin, newMax) => {
+	const newRangeQuery = {
+		text: 'UPDATE factories SET min = $1, max = $2 WHERE uuid = $3',
+		values: [newMin, newMax, uuid]
+	};
+
+	try {
+		const newRangeResult = await query(newRangeQuery);
+		return true;
+	} catch(err) {
+		throw err;
+	}
+}
+
 const changeName = async (uuid, newName) => {
 	const newNameQuery = {
 		text: 'UPDATE factories SET name = $1 WHERE uuid = $2',
@@ -193,5 +207,6 @@ module.exports = {
 	getOne,
 	changeName,
 	deleteOne,
-	regenerateChildren
+	regenerateChildren,
+	adjustRanges
 };

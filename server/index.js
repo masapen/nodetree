@@ -21,21 +21,10 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Origin', 'localhost:3001, d3mw298potvk6s.cloudfront.net');
 	req.ws = ws;
 	next();
 });
-
-/*
-app.get('/', (req, res) => res.status(200).json({msg: 'Hello World!'}));
-app.post('/', (req, res) => {
-	console.log(req.body);
-	return res.status(200).send('OK');
-});
-
-app.use('/factories', factoryRoutes);
-*/
-
 
 app.use((req, res, next) => {
 	const err = new Error('Not Found');
