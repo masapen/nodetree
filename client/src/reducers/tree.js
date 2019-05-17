@@ -39,7 +39,7 @@ const messageHandler = (state, action) => {
 					tree: data
 				};
 			}
-			
+
 			default: {
 				return state;
 			}
@@ -52,8 +52,19 @@ const messageHandler = (state, action) => {
 	}
 }
 
+
+const onConnected = data => ({type: WS_OPEN, payload: data});
+const onGetTree = obj => ({type: GET_ALL, payload: obj});
+
+export const connectToHost = address => dispatch => dispatch(connect(address));
+
+
 export const reducer = (state = initialState, action) => {
 	switch(action.type) {
+		case WS_OPEN: {
+			//TODO: Send ID check to get tree
+			return state;
+		}
 		case WS_MESSAGE: {
 			return messageHandler(state, action);
 		}
@@ -63,8 +74,3 @@ export const reducer = (state = initialState, action) => {
 		}
 	}
 }
-
-const onConnected = data => ({type: CONNECTED, payload: data});
-const onGetTree = obj => ({type: GET_ALL, payload: obj});
-
-export const connectToHost = address => dispatch => dispatch(connect(address));

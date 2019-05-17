@@ -24,18 +24,13 @@ $rgba-complement-3: rgba(187,  9,  0,1);
 $rgba-complement-4: rgba(145,  7,  0,1);
 
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
 }
 
 .dressing {
-  font-size: calc(10px + 1vmin);
-  min-height: 5vh;
+  font-size: calc(5px + 1vmin);
+  font-weight: bold;
+  min-height: 2vmin;
+  padding: 0.3em;
 }
 
 .App-header {
@@ -43,12 +38,80 @@ $rgba-complement-4: rgba(145,  7,  0,1);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  position: sticky;
+  position: fixed;
+  width: 100%;
   color: white;
 }
 
-.main {
+.factory-name {
+  font-weight: bold;
+}
 
+.factory-menu {
+  display: none;
+}
+
+.factory-body {
+  margin-top: 1em;
+
+  &:hover ~ .factory-menu {
+    display: block;
+  }
+
+  &.span {
+    margin-left: 5em;
+  }
+}
+
+ul {
+  list-style: none;
+  padding: 0 1em;
+
+  .tree-group {
+    margin-top: 0.25em;
+    margin-left: 0.15em;
+
+    &.factory {
+      li {
+        padding: 0 1em;
+      }
+    }
+
+    &.children {
+      li {
+        padding: 0 0.5em;
+      }
+      
+    }
+
+    li {
+      border-left: 1px solid rgb(0, 0, 0);
+      line-height: 20px;
+
+      &:last-child {
+        border-left: none;
+
+        &:before {
+          border-left: 1px solid rgb(0, 0, 0);
+        }
+      }
+
+      &:before {
+        position: relative;
+        border-bottom: 1px solid rgb(0, 0, 0);
+        display: inline-block;
+        content: "";
+        top: -0.3em;
+        left: -0.5em;
+        width: 12px;
+        height: 1em;
+      }
+    }
+  }
+}
+
+.main {
+  padding: 3em 2em;
 }
 .credits {
   position: fixed;
