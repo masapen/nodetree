@@ -5,7 +5,6 @@ const websocket = require('ws');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const factoryRoutes = require('./routes/factory');
 const {injectHandlers} = require('./routes/websocket');
 
 const server = http.createServer(app);

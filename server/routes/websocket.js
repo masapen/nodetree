@@ -3,7 +3,8 @@ const express = require('express');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
 const {
-	getAll, generate, changeRange
+	getAll, generate, changeRange,
+	create
 } = require('../controllers/factory');
 
 const connectedClients = {};
@@ -32,6 +33,34 @@ const handleMessage = (clientInfo, msg) => {
 				.then(result => sendObj(socket, {type: 'TREE_STRUCTURE', data: result}));
 		}
 
+		case 'FACTORY_CREATION_REQUEST': {
+			const {name, numChildren, min:minimum, max:maximum} = msg.data;
+			if(!name) {
+				sendObj(socket, {type: 'ERROR', data: 'Name required'});
+			}
+
+			//In all honesty, the create method has enough checks to catch the rest.
+			return create({name, numChildren, minimum, maximum})
+				.then(result => broadcastTree())
+				.catch(err => sendObj(socket, {type: 'ERROR', data: 'Unable to create factory'}));
+		}
+
+		case 'FACTORY_UPDATE_REQUEST': {
+			const {uuid, name, numChildren, min:minimum, max:maximum} = msg.data;
+			if(!uuid) {
+				sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
+			}
+
+			if(!name) {
+				sendObj(socket, {type: 'ERROR', data: 'Name required'});
+			}
+
+			//In all honesty, the create method has enough checks to catch the rest.
+			return create({uuid, name, numChildren, minimum, maximum})
+				.then(result => broadcastTree())
+				.catch(err => sendObj(socket, {type: 'ERROR', data: 'Unable to create factory'}));
+		}
+
 		case 'CHILD_GENERATION_REQUEST': {
 			const {uuid, numChildren} = msg.data;
 			if(!uuid) {
@@ -39,7 +68,7 @@ const handleMessage = (clientInfo, msg) => {
 			}
 
 			if(!numChildren) {
-				sendObj(socket, {type: 'ERROR', data: 'Number of desired numbers required'});
+				sendObj(socket, {type: 'ERROR', data: 'Amount of desired numbers required'});
 			}
 
 			return generate({uuid, numChildren})
@@ -63,7 +92,7 @@ const handleMessage = (clientInfo, msg) => {
 			return changeRange(uuid, min, max)
 				.then(result => broadcastTree());
 		}
-		
+
 		default: {
 			sendObj(socket, {type: 'UNKNOWN_TYPE', data: 'No idea what you are asking for'});
 		}

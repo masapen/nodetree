@@ -10,7 +10,7 @@ const {isSafeUUIDForm} = require('../lib/util');
 const {
   makeFactory, getEverything, getOne,
   changeName, deleteOne, regenerateChildren,
-  adjustRanges
+  adjustRanges, updateFactory
 } = queries;
 
 
@@ -28,6 +28,7 @@ const getAll = async () => {
 } 
 
 const create = body => {
+  //Now a create or update method.
   const givenFields = Object.keys(body);
 
   if(!givenFields.includes('name')) {
@@ -44,8 +45,8 @@ const create = body => {
     return Promise.resolve({type: 'ERROR', msg: `Alphanumeric characters only - Characters ${filteredName} not allowed`});
   }
 
-  const min = parseInt(body.minimum || 0, 10);
-  const max = parseInt(body.maximum || 1, 10);
+  const min = parseInt(body.minimum, 10);
+  const max = parseInt(body.maximum, 10);
   const count = parseInt(body.numChildren || 0, 10);
 
   if(!_.isFinite(min)) {
@@ -76,11 +77,19 @@ const create = body => {
     return Promise.resolve({type: 'ERROR', msg: 'Maximum cannot be less than minimum'});
   }
 
-  const newUUID = uuid();
+  const existingUUID = body.uuid;
 
-  return makeFactory(body.name, newUUID, count, min, max)
+  if(existingUUID && !isSafeUUIDForm(existingUUID)) {
+    return Promise.resolve({type: 'ERROR', msg: 'Invalid identifier sent'});
+  }
+
+  const newUUID = body.uuid ? body.uuid : uuid();
+  const factoryMethod = body.uuid ? updateFactory : makeFactory;
+
+  return factoryMethod(body.name, newUUID, count, min, max)
     .then(result => {
-      return Promise.resolve({ok: true, msg: 'Factory created'});
+      const successMsg = body.uuid ? 'Factory updated' : 'Factory created';
+      return Promise.resolve({ok: true, msg: successMsg});
     })
     .catch(err => {
       console.error(err);
@@ -104,6 +113,7 @@ const get = body => {
     });
 }
 
+/*
 const changeRange = body => {
   const uuid = body.uuid;
   const requestedMin = body.min;
@@ -169,7 +179,7 @@ const rename = body => {
       return Promise.resolve({type: 'ERROR', msg: 'Unable to change name'});
     });
 }
-
+*/
 const generate = body => {
   const uuid = body.uuid;
 
@@ -220,6 +230,5 @@ module.exports = {
   get,
   create,
   selfdestruct,
-  rename,
   generate
 }

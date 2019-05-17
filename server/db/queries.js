@@ -1,5 +1,8 @@
 const query = require('./query');
-const { random, range } = require('lodash');
+const { 
+	random, range, isNil,
+	isNumber 
+} = require('lodash');
 
 const deleteOne = async uuid => {
 	//Triggers on the DB will handle deletion of children before the factory.
@@ -134,7 +137,7 @@ const getEverything = async () => {
 			return acc;
 		}, {});
 
-		return allFactoryRows.map(row => ({
+		return allFactoryRows.sort((a, b) => a.id - b.id).map(row => ({
 			uuid: row.uuid,
 			name: row.name,
 			min: row.min,
@@ -179,7 +182,6 @@ const makeFactory = async (name, uuid, numChildren, min = 0, max = 1) => {
 			values: []
 		};
 
-		console.log(newChildrenQuery);
 		const newChildrenResult = await query(newChildrenQuery);
 
 		const children = newChildrenResult.rows.map(row => ({
@@ -200,9 +202,75 @@ const makeFactory = async (name, uuid, numChildren, min = 0, max = 1) => {
 	}
 }
 
+const updateFactory = async (name, uuid, numChildren, min = 0, max = 1) => {
+
+	const setPieces = [['name', name], ['min', min], ['max', max]]
+		.filter(pair => !isNil(pair[1]))
+		.map(pair => isNumber(pair[1]) ? `${pair[0]} = ${pair[1]}` : `${pair[0]} = '${pair[1]}'`)
+		.join(',');
+
+	const newFactoryQuery = {
+		text: `UPDATE factories SET ${setPieces} WHERE uuid = $1 RETURNING *`,
+		values: [uuid]
+	};
+
+	try {
+		const newFactoryRes = await query(newFactoryQuery);
+
+		if(!numChildren || numChildren < 1) {
+			return {
+				factory: {
+					uuid,
+					name,
+					min,
+					max,
+					children: []
+				}
+			}
+		}
+
+
+
+		const firstRow = newFactoryRes.rows[0];
+		const {id} = firstRow;
+
+		//Get rid of existing numbers if new children were requested.
+		const cleanHouseQuery = {
+			text: 'DELETE FROM children WHERE fid = $1',
+			values: [id]
+		};
+
+		const cleanHouseResult = await query(cleanHouseQuery);
+		const numSequence = range(0, numChildren).map(n => random(min, max));
+		const sequenceQuery = numSequence.map(num => `(${id},${num})`).join(',');
+		const newChildrenQuery = {
+			text: `INSERT INTO children(fid, num) VALUES ${sequenceQuery} RETURNING *`,
+			values: []
+		};
+
+		const newChildrenResult = await query(newChildrenQuery);
+
+		const children = newChildrenResult.rows.map(row => ({
+			number: row.num
+		}));
+
+		return {
+			factory: {
+				uuid,
+				name,
+				min,
+				max,
+				children
+			}
+		};
+	} catch(err) {
+		throw err;
+	}
+}
 
 module.exports = {
 	makeFactory,
+	updateFactory,
 	getEverything,
 	getOne,
 	changeName,
