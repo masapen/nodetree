@@ -60,11 +60,34 @@ export const generateChildren = (factoryId, numChildren) => dispatch =>
 			data: {uuid: factoryId, numChildren}
 		}));
 
+export const createFactory = submissionObj => dispatch =>
+	dispatch(send({
+		type: 'FACTORY_CREATION_REQUEST',
+		data: {
+			name: submissionObj.factoryName,
+			numChildren: parseInt(submissionObj.numChildren, 10),
+			min: parseInt(submissionObj.minValue, 10),
+			max: parseInt(submissionObj.maxValue, 10)
+		}
+	}));
+
+
+export const updateFactory = (uuid, submissionObj) => dispatch =>
+	dispatch(send({
+		type: 'FACTORY_UPDATE_REQUEST',
+		data: {
+			uuid,
+			name: submissionObj.factoryName,
+			numChildren: parseInt(submissionObj.numChildren, 10),
+			min: parseInt(submissionObj.minValue, 10),
+			max: parseInt(submissionObj.maxValue, 10)
+		}
+	}));
+
 
 export const reducer = (state = initialState, action) => {
 	switch(action.type) {
 		case WS_OPEN: {
-			//TODO: Send ID check to get tree
 			return state;
 		}
 		case WS_MESSAGE: {

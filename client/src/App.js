@@ -7,13 +7,12 @@ function App() {
   return (
     <div className="App centered">
       <header className="App-header dressing">
-          Header Name
+          Nodetree
       </header>
       <div className="main">
         <TreeComponent />
       </div>
       <footer className="credits dressing centered">
-      Footer Name
       Made by Mykel Pendergrass
       </footer>
     </div>
