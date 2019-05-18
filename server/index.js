@@ -1,10 +1,6 @@
-//const app = require('./app');
 const https = require('https');
 const fs = require('fs');
 const websocket = require('ws');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
 const {injectHandlers} = require('./routes/websocket');
 
 const curVersion = fs.readFileSync('./VERSION', 'utf8').trim();
