@@ -262,7 +262,7 @@ class Factory extends React.Component {
               color="primary" 
               disabled={!_.isEmpty(formErrors)} 
               onClick={e => {this.updateFactory(); this.toggleEditModal();}}>
-              Create
+              Update
             </Button>&nbsp;
             <Button color="secondary" onClick={this.toggleEditModal}>Cancel</Button>
           </ModalFooter>
