@@ -59,6 +59,10 @@ typings/
 # Output of 'npm pack'
 *.tgz
 
+*.pem
+*.key
+*.cert
+*.crt
 # Yarn Integrity file
 .yarn-integrity
 
@@ -89,3 +93,8 @@ typings/
 .dynamodb/
 
 # End of https://www.gitignore.io/api/node
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

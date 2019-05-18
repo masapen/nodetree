@@ -1,13 +1,18 @@
 require('dotenv').config();
 const app = require('./app');
-const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const websocket = require('ws');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const {injectHandlers} = require('./routes/websocket');
 
-const server = http.createServer(app);
+const server = https.createServer({
+	key: fs.readFileSync('key.pem'),
+	cert: fs.readFileSync('cert.pem')
+}, app);
+
 const ws = new websocket.Server({
 	server,
 	path: '/live/connect'
