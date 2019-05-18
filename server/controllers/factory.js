@@ -1,6 +1,3 @@
-
-//TODO: Break up route functions, put into separate files.
-//TODO: Merge makeChildren and rename into /edit
 const uuid = require('uuid/v4');
 const _ = require('lodash');
 const queries = require('../db/queries');

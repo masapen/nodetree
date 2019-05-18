@@ -1,4 +1,3 @@
-const app = require('../app');
 const express = require('express');
 const _ = require('lodash');
 const uuid = require('uuid/v4');
