@@ -209,7 +209,6 @@ const generate = body => {
 
 const selfdestruct = body => {
   const uuid = body.uuid;
-  const newName = body.name;
 
   if(!isSafeUUIDForm(uuid)) {
     return Promise.resolve({type: 'ERROR', msg: 'Invalid identifier sent'});

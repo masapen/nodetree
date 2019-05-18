@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const {injectHandlers} = require('./routes/websocket');
 
-const curVersion = fs.readFileSync('./VERSION', 'utf8');
+const curVersion = fs.readFileSync('./VERSION', 'utf8').trim();
 const server = https.createServer({
 	key: fs.readFileSync(`./privkey.pem`, 'utf8'),
 	cert: fs.readFileSync(`./fullchain.pem`, 'utf8')

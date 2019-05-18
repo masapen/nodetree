@@ -10,8 +10,8 @@ const isProduction = !window.location.hostname.startsWith('localhost');
 const middleware = [wsMiddleware, thunk, !isProduction && logger].filter(mw => !!mw);
 
 const store = createStore(
-	TreeReducer,
-	applyMiddleware(...middleware)
+  TreeReducer,
+  applyMiddleware(...middleware)
 );
 
 export default store;

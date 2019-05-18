@@ -1,289 +1,331 @@
 import React from 'react';
+import _ from 'lodash';
 import { 
-	Badge, Collapse, Fade, 
-	Dropdown, DropdownToggle, DropdownMenu,
-	DropdownItem, Modal, ModalHeader,
-	ModalBody, ModalFooter, Button,
-	Form, FormGroup, Input,
-	Label
+  Badge, Collapse, Fade, 
+  Dropdown, DropdownToggle, DropdownMenu,
+  DropdownItem, Modal, ModalHeader,
+  ModalBody, ModalFooter, Button,
+  Form, FormGroup, Input,
+  Label, FormFeedback
 } from 'reactstrap';
 
 class Factory extends React.Component {
 
-	constructor(props) {
-		super(props);
-		this.state = {
-			selectedAmount: 0,
-			isChildListOpen: false,
-			isDropdownOpen: false,
-			isGenerateModalOpen: false,
-			isRangeModalOpen: false,
-			isNameModalOpen: false,
-			isDeleteModalOpen: false,
-			factoryFormObject: {
-				alsoCreateChildren: false
-			}
-		}
+  constructor(props) {
+    super(props);
+    this.state = {
+      selectedAmount: 0,
+      isChildListOpen: false,
+      isDropdownOpen: false,
+      isRangeModalOpen: false,
+      isNameModalOpen: false,
+      isDeleteModalOpen: false,
+      factoryFormObject: {},
+      formErrors: {}
+    }
 
-		this.toggleChildren = this.toggleChildren.bind(this);
-		this.toggleDropdown = this.toggleDropdown.bind(this);
-		this.renderTally = this.renderTally.bind(this);
-		this.makeChildren = this.makeChildren.bind(this);
+    this.formErrorMessages = {
+      minValue: 'Mimimum cannot be more than maximum',
+      factoryName: 'Name must contain only alphanumeric characters',
+      maxValue: 'Maximum must be a number'
+    };
 
-		this.renderGenModal = this.renderGenModal.bind(this);
-		this.toggleGenModal = this.toggleGenModal.bind(this);
-		this.renderEditModal = this.renderEditModal.bind(this);
-		this.toggleEditModal = this.toggleEditModal.bind(this);
-		this.updateForm = this.updateForm.bind(this);
-	}
+    this.toggleChildren = this.toggleChildren.bind(this);
+    this.toggleDropdown = this.toggleDropdown.bind(this);
+    this.renderTally = this.renderTally.bind(this);
+    this.makeChildren = this.makeChildren.bind(this);
 
-	toggleChildren() {
-		this.setState({
-			isChildListOpen: !this.state.isChildListOpen
-		});
-	}
+    this.renderEditModal = this.renderEditModal.bind(this);
+    this.toggleEditModal = this.toggleEditModal.bind(this);
+    this.renderDeleteModal = this.renderDeleteModal.bind(this);
+    this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
+    this.updateForm = this.updateForm.bind(this);
+    this.deleteFactory = this.deleteFactory.bind(this);
+  }
 
-	toggleDropdown() {
-		this.setState({
-			isDropdownOpen: !this.state.isDropdownOpen
-		});
-	}
+  toggleChildren() {
+    this.setState({
+      isChildListOpen: !this.state.isChildListOpen
+    });
+  }
 
-	renderTally() {
-		const {
-			children = []
-		} = this.props.data;
+  toggleDropdown() {
+    this.setState({
+      isDropdownOpen: !this.state.isDropdownOpen
+    });
+  }
 
-		if(children.length < 1 || this.state.isChildListOpen) return (<span />);
+  renderTally() {
+    const {
+      children = []
+    } = this.props.data;
 
-		return (
-				<span>
-					<Badge color="secondary" pill>{children.length} hidden</Badge>
-				</span>
-		);
-	}
+    if(children.length < 1 || this.state.isChildListOpen) return (<span />);
 
-	makeChildren() {
-		const {
-			data: {uuid},
-			generate
-		} = this.props;
+    return (
+        <span>
+          <Badge color="secondary" pill>{children.length} hidden</Badge>
+        </span>
+    );
+  }
 
-		if(!this.state.selectedAmount) return;
+  makeChildren() {
+    const {
+      data: {uuid},
+      generate
+    } = this.props;
 
-		generate(uuid, this.state.selectedAmount);
-	}
+    if(!this.state.selectedAmount) return;
 
-	updateForm(e) {
-		const formObj = this.state.factoryFormObject;
+    generate(uuid, this.state.selectedAmount);
+  }
 
-		//Reactstrap's checkbox returning "on" no matter the state is troublesome.
-		if(e.target.id === 'alsoCreateChildren') {
-			formObj[e.target.id] = !formObj[e.target.id];
-		} else {
-			formObj[e.target.id] = e.target.value;
-		}
+  updateForm(e) {
+    const formObj = this.state.factoryFormObject;
 
-		if(!formObj['alsoCreateChildren']) {
-			delete formObj['numChildren'];
-		}
+    if(e.target.id === 'alsoCreateChildren') {
+      formObj[e.target.id] = !formObj[e.target.id];
+    } else {
+      formObj[e.target.id] = e.target.value;
+    }
 
-		console.log(formObj);
-		this.setState({factoryFormObject: formObj});
-	}
+    if(!formObj['alsoCreateChildren']) {
+      delete formObj['numChildren'];
+    }
 
-	updateFactory() {
-		const {
-			factoryFormObject
-		} = this.state;
+    const formErrors = {
+      minValue: !formObj.minValue || !parseInt(formObj.minValue, 10) || parseInt(formObj.minValue, 10) > parseInt(formObj.maxValue, 10),
+      maxValue: !formObj.maxValue || !parseInt(formObj.maxValue, 10),
+      factoryName: !formObj.factoryName || formObj.factoryName.length < 1 || formObj.factoryName.trim().length < 1
+    };
 
-		const {
-			data: {uuid, name, min, max},
-			update
-		} = this.props;
+    const userInducedErrors = _.omitBy(formErrors, (v) => !v);
 
-		const oldInfo = {
-			factoryName: name,
-			minValue: min,
-			maxValue: max
-		};
+    this.setState({factoryFormObject: formObj, formErrors: userInducedErrors});
+  }
 
-		const submission = Object.assign({}, oldInfo, factoryFormObject);
-		update(uuid, submission);
-	}
+  updateFactory() {
+    const {
+      factoryFormObject
+    } = this.state;
 
-	toggleGenModal() {
-		this.setState({isGenerateModalOpen: !this.state.isGenerateModalOpen});
-	}
+    const {
+      data: {uuid, name, min, max},
+      update
+    } = this.props;
 
-	renderGenModal() {
-		if(!this.state.isGenerateModalOpen) return (<span />);
+    const oldInfo = {
+      factoryName: name,
+      minValue: min,
+      maxValue: max
+    };
 
-		return (
-			<div>
-				<Modal isOpen={this.state.isGenerateModalOpen} toggle={this.toggleGenModal}>
-					<ModalHeader toggle={this.toggleRangeModal}>Change Range of Numbers</ModalHeader>
-					<ModalBody>
-						<input type="range" min="0" max="15" name="amount" onChange={this.updateSelectedAmount} />
-						&nbsp;
-						<label htmlFor="amount">{this.state.selectedAmount}</label>
-					</ModalBody>
-					<ModalFooter>
-						<Button color="primary" onClick={() => {this.makeChildren(); this.toggleGenModal();}}>
-							Generate
-						</Button>&nbsp;
-						<Button color="secondary" onClick={this.toggleGenModal}>Cancel</Button>
-					</ModalFooter>
-				</Modal>
-			</div>
-		)
-	}
+    const submission = Object.assign({}, oldInfo, factoryFormObject);
+    update(uuid, submission);
+  }
 
-	toggleEditModal() {
-		const {
-			data: {name, min, max}
-		} = this.props;
+  deleteFactory() {
+    const {
+      destroy
+    } = this.props;
 
-		let initFormObject = {
-			alsoCreateChildren: false
-		};
+    const {data: {uuid}} = this.props;
+    destroy(uuid);
+  }
 
-		if(!this.state.isEditModalOpen) {
-			const oldData = {
-				factoryName: name,
-				minValue: min,
-				maxValue: max
-			};
+  toggleDeleteModal() {
+    this.setState({isDeleteModalOpen: !this.state.isDeleteModalOpen});
+  }
 
-			initFormObject = Object.assign({}, initFormObject, oldData);
-		}
+  renderDeleteModal() {
+    if(!this.state.isDeleteModalOpen) return (<span />);
+    const {
+      data: {name}
+    } = this.props;
 
-		this.setState({
-			isEditModalOpen: !this.state.isEditModalOpen,
-			factoryFormObject: initFormObject
-		});
-	}
+    return (
+      <div>
+        <Modal isOpen={this.state.isDeleteModalOpen} toggle={this.toggleDeleteModal}>
+          <ModalHeader toggle={this.isDeleteModalOpen}>Delete Factory</ModalHeader>
+          <ModalBody>
+            <Form>
+              <FormGroup>
+                <Label>Are you sure you want to delete factory {name}?</Label>
+              </FormGroup>
+            </Form>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={() => {this.deleteFactory(); this.toggleDeleteModal();}}>
+              Yes
+            </Button>
+            <Button color="secondary" onClick={this.toggleDeleteModal}>No</Button>
+          </ModalFooter>
+        </Modal>
+      </div>
+    )
+  }
 
-	renderEditModal() {
-		if(!this.state.isEditModalOpen) return (<span />);
-		const {factoryFormObject} = this.state;
-		const {
-			data
-		} = this.props;
-		return (
-			<div>
-				<Modal isOpen={this.state.isEditModalOpen} toggle={this.toggleEditModal}>
-					<ModalHeader toggle={this.toggleEditModal}>Edit Factory</ModalHeader>
-					<ModalBody>
-						<Form>
-							<FormGroup>
-								<Label for="factoryName">Name</Label>
-								<Input 
-									type="text" 
-									name="newFactoryName" 
-									value={factoryFormObject.factoryName} 
-									id="factoryName" 
-									onChange={this.updateForm} 
-									placeholder="Foo Bar" />
-							</FormGroup>
-							<FormGroup inline>
-								<Label for="alsoCreateChildren">Regenerate Numbers?</Label>
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								<Input type="checkbox" name="optionalGenerate" id="alsoCreateChildren" onChange={this.updateForm} />
-							</FormGroup>
-							<Fade in={[true, 'yes', 'on'].includes(this.state.factoryFormObject.alsoCreateChildren)}>
-							<FormGroup>
-								<Label for="numChildren">Make {factoryFormObject.numChildren || 0} Numbers upon Creation</Label>
-								<Input type="range" min="0" max="15" name="amount" id="numChildren" onChange={this.updateForm} />
-							</FormGroup>
-							</Fade>
-							<FormGroup inline>
-								<Label for="minValue">Minimum Value</Label>
-								<Input 
-									type="number" 
-									min="0" 
-									id="minValue" 
-									placeholder="0" 
-									onChange={this.updateForm} />
-							</FormGroup>
-							<FormGroup inline>
-								<Label for="maxValue">Maximum Value</Label>
-								<Input 
-									type="number" 
-									min="1" 
-									id="maxValue" 
-									placeholder="1" 
-									onChange={this.updateForm} />
-							</FormGroup>
-						</Form>
-					</ModalBody>
-					<ModalFooter>
-						<Button color="primary" onClick={e => {this.updateFactory(); this.toggleEditModal(e);}}>
-							Create
-						</Button>&nbsp;
-						<Button color="secondary" onClick={this.toggleEditModal}>Cancel</Button>
-					</ModalFooter>
-				</Modal>
-			</div>
-		)
-	}
+  toggleEditModal() {
+    const {
+      data: {name, min, max, children}
+    } = this.props;
 
-	render() {
-		const {
-			data: {
-				children = [], name, min,
-				max, uuid
-			},
-			generate
-		} = this.props;
+    let initFormObject = {};
 
-		return (
-			<div>
-				<div className="factory-body">
-					<div>
-						<span className="factory-name">
-							{this.renderGenModal()}
-							{this.renderEditModal()}
-							<Dropdown className="factory-name" isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
-								<DropdownToggle caret>
-									{name}
-								</DropdownToggle>
-								&nbsp;&nbsp;&nbsp;
-								<span>
-									<Badge color="info">{min}:{max}</Badge>
-								</span>
-								&nbsp;
-								{this.renderTally()}
-								<DropdownMenu>
-									<DropdownItem onClick={this.toggleGenModal}>{children.length < 1 ? 'Generate' : 'Regenerate'}</DropdownItem>
-									<DropdownItem onClick={this.toggleChildren}>
-										{this.state.isChildListOpen ? 'Hide Children' : 'Show Children'}
-									</DropdownItem>
-									<DropdownItem divider />
-									<DropdownItem onClick={this.toggleEditModal}>Edit</DropdownItem>
-									<DropdownItem divider />
-									<DropdownItem>Delete</DropdownItem>
-								</DropdownMenu>
-							</Dropdown>
-						</span>
-					</div>
-					<Collapse isOpen={this.state.isChildListOpen}>
-						<ul className="tree-group children">
-						{
-							children.map((child, idx) => (
-								<li
-									key={`child_of_${uuid}_${idx}_${child.number}`}
-									className="child">
-									{child.number}
-								</li>
-							))
-						}
-						</ul>
-					</Collapse>
-				</div>
-			</div>
-		)
-	}
+    if(!this.state.isEditModalOpen) {
+      const oldData = {
+        factoryName: name,
+        minValue: min,
+        maxValue: max,
+        numChildren: children.length,
+      };
+
+      initFormObject = Object.assign({}, initFormObject, oldData);
+    }
+
+    
+    this.setState({
+      isEditModalOpen: !this.state.isEditModalOpen,
+      factoryFormObject: initFormObject,
+      formErrors: {}
+    });
+  }
+
+  renderEditModal() {
+    if(!this.state.isEditModalOpen) return (<span />);
+    const {factoryFormObject:form, formErrors} = this.state;
+    const {
+      data
+    } = this.props;
+
+    return (
+      <div>
+        <Modal isOpen={this.state.isEditModalOpen} toggle={this.toggleEditModal}>
+          <ModalHeader toggle={this.toggleEditModal}>Edit Factory</ModalHeader>
+          <ModalBody>
+            <Form>
+              <FormGroup>
+                <Label for="factoryName">Name</Label>
+                <Input 
+                  type="text" 
+                  name="newFactoryName" 
+                  value={form.factoryName} 
+                  id="factoryName" 
+                  onChange={this.updateForm}
+                  invalid={formErrors.factoryName}
+                  placeholder="Foo Bar"/>
+                <FormFeedback invalid={formErrors.factoryName}>{this.formErrorMessages.factoryName}</FormFeedback>
+              </FormGroup>
+              <FormGroup inline>
+                <Label for="alsoCreateChildren">{data.children.length > 0 ? 'Regenerate Numbers' : 'Generate Numbers'}?</Label>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <Input 
+                  type="checkbox" 
+                  name="optionalGenerate" 
+                  id="alsoCreateChildren" 
+                  onChange={this.updateForm}/>
+              </FormGroup>
+              <Collapse isOpen={[true, 'yes', 'on'].includes(form.alsoCreateChildren)}>
+              <FormGroup>
+                <Label for="numChildren">Make {form.numChildren || 0} Numbers upon Creation</Label>
+                <Input type="range" min="0" max="15" name="amount" id="numChildren" onChange={this.updateForm} />
+              </FormGroup>
+              </Collapse>
+              <FormGroup inline>
+                <Label for="minValue">Minimum Value</Label>
+                <Input 
+                  type="number" 
+                  min="0" 
+                  id="minValue" 
+                  placeholder="0"
+                  value={form.minValue}
+                  onChange={this.updateForm} 
+                  invalid={formErrors.minValue}/>
+                <FormFeedback invalid={formErrors.minValue}>{this.formErrorMessages.minValue}</FormFeedback>
+              </FormGroup>
+              <FormGroup inline>
+                <Label for="maxValue">Maximum Value</Label>
+                <Input 
+                  type="number" 
+                  min="1" 
+                  id="maxValue" 
+                  placeholder="1" 
+                  value={form.maxValue}
+                  onChange={this.updateForm} 
+                  invalid={formErrors.maxValue}/>
+                <FormFeedback invalid={formErrors.maxValue}>{this.formErrorMessages.maxValue}</FormFeedback>
+              </FormGroup>
+            </Form>
+          </ModalBody>
+          <ModalFooter>
+            <Button 
+              color="primary" 
+              disabled={!_.isEmpty(formErrors)} 
+              onClick={e => {this.updateFactory(); this.toggleEditModal();}}>
+              Create
+            </Button>&nbsp;
+            <Button color="secondary" onClick={this.toggleEditModal}>Cancel</Button>
+          </ModalFooter>
+        </Modal>
+      </div>
+    )
+  }
+
+  render() {
+    const {
+      data: {
+        children = [], name, min,
+        max, uuid
+      },
+      generate
+    } = this.props;
+
+    return (
+      <div>
+        <div className="factory-body">
+          <div>
+            <span className="factory-name">
+              {this.renderEditModal()}
+              {this.renderDeleteModal()}
+              <Dropdown className="factory-name" isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
+                <DropdownToggle caret>
+                  {name}
+                </DropdownToggle>
+                &nbsp;&nbsp;&nbsp;
+                <span>
+                  <Badge color="info">{min}:{max}</Badge>
+                </span>
+                &nbsp;
+                {this.renderTally()}
+                <DropdownMenu>
+                  <DropdownItem onClick={this.toggleChildren}>
+                    {this.state.isChildListOpen ? 'Hide Children' : 'Show Children'}
+                  </DropdownItem>
+                  <DropdownItem divider />
+                  <DropdownItem onClick={this.toggleEditModal}>Edit</DropdownItem>
+                  <DropdownItem divider />
+                  <DropdownItem onClick={this.toggleDeleteModal}>Delete</DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </span>
+          </div>
+          <Collapse isOpen={this.state.isChildListOpen}>
+            <ul className="tree-group children">
+            {
+              children.map((child, idx) => (
+                <li
+                  key={`child_of_${uuid}_${idx}_${child.number}`}
+                  className="child">
+                  {child.number}
+                </li>
+              ))
+            }
+            </ul>
+          </Collapse>
+        </div>
+      </div>
+    )
+  }
 };
 
 

@@ -4,7 +4,7 @@ const _ = require('lodash');
 const uuid = require('uuid/v4');
 const {
 	getAll, generate, changeRange,
-	create
+	create, selfdestruct
 } = require('../controllers/factory');
 
 const connectedClients = {};
@@ -33,10 +33,20 @@ const handleMessage = (clientInfo, msg) => {
 				.then(result => sendObj(socket, {type: 'TREE_STRUCTURE', data: result}));
 		}
 
+		case 'FACTORY_DELETION_REQUEST': {
+			const {uuid} = msg.data;
+			if(!uuid) {
+				 return sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
+			}
+
+			return selfdestruct({uuid})
+				.then(result => broadcastTree());
+		}
+		
 		case 'FACTORY_CREATION_REQUEST': {
 			const {name, numChildren, min:minimum, max:maximum} = msg.data;
 			if(!name) {
-				sendObj(socket, {type: 'ERROR', data: 'Name required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'Name required'});
 			}
 
 			//In all honesty, the create method has enough checks to catch the rest.
@@ -48,11 +58,11 @@ const handleMessage = (clientInfo, msg) => {
 		case 'FACTORY_UPDATE_REQUEST': {
 			const {uuid, name, numChildren, min:minimum, max:maximum} = msg.data;
 			if(!uuid) {
-				sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
 			}
 
 			if(!name) {
-				sendObj(socket, {type: 'ERROR', data: 'Name required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'Name required'});
 			}
 
 			//In all honesty, the create method has enough checks to catch the rest.
@@ -64,11 +74,11 @@ const handleMessage = (clientInfo, msg) => {
 		case 'CHILD_GENERATION_REQUEST': {
 			const {uuid, numChildren} = msg.data;
 			if(!uuid) {
-				sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
 			}
 
 			if(!numChildren) {
-				sendObj(socket, {type: 'ERROR', data: 'Amount of desired numbers required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'Amount of desired numbers required'});
 			}
 
 			return generate({uuid, numChildren})
@@ -78,15 +88,15 @@ const handleMessage = (clientInfo, msg) => {
 		case 'RANGE_CHANGE_REQUEST': {
 			const {uuid, min, max} = msg.data;
 			if(!uuid) {
-				sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'ID of factory required'});
 			}
 
 			if(!min) {
-				sendObj(socket, {type: 'ERROR', data: 'Minimum value required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'Minimum value required'});
 			}
 
 			if(!max) {
-				sendObj(socket, {type: 'ERROR', data: 'Maximum value required'});
+				 return sendObj(socket, {type: 'ERROR', data: 'Maximum value required'});
 			}
 
 			return changeRange(uuid, min, max)
@@ -94,7 +104,7 @@ const handleMessage = (clientInfo, msg) => {
 		}
 
 		default: {
-			sendObj(socket, {type: 'UNKNOWN_TYPE', data: 'No idea what you are asking for'});
+			 return sendObj(socket, {type: 'UNKNOWN_TYPE', data: 'No idea what you are asking for'});
 		}
 	}
 }
